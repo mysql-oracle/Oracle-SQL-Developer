@@ -1,0 +1,15 @@
+
+
+1. Exporting SQL To HTML 
+-------------------------
+
+This is the query used for the HTML and SQL*Loader examples
+
+select E.FIRST_NAME,
+  E.EMAIL ,
+  E.HIRE_DATE ,
+  E.LAST_NAME,
+  D.DEPARTMENT_NAME
+from EMPLOYEES E,
+  DEPARTMENTS D
+where E.DEPARTMENT_ID = D.DEPARTMENT_ID;

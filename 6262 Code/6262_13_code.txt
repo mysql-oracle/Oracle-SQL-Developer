@@ -1,0 +1,19 @@
+This chapter relies on samples available from non-Oracle databases on their database sites. We will not be providing the code for these.
+
+1. Using the SQL Worksheet
+--------------------------
+
+CREATE TABLE jobs
+  (
+    job_id   SMALLINT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
+    job_desc VARCHAR(50) NOT NULL DEFAULT 'New Position',
+    min_lvl  TINYINT NOT NULL CHECK (min_lvl >= 10),
+    max_lvl  TINYINT NOT NULL CHECK (max_lvl <= 250)
+  )
+
+SELECT LASTNAME, FIRSTNAME, CITY, REGION 
+FROM EMPLOYEES;
+
+INSERT INTO EMPLOYEES (LASTNAME, FIRSTNAME) VALUES ('SUE', 'HARPER');
+
+

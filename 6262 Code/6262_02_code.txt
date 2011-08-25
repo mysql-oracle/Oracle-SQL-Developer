@@ -1,0 +1,55 @@
+1. General Display Editors
+--------------------------
+
+SELECT COLUMN_NAME,DATA_TYPE
+FROM ALL_TAB_COLUMNS
+WHERE TABLE_NAME ='EMPLOYEES'
+AND OWNER = 'HR';
+
+
+2.  Create Index
+-----------------
+
+CREATE INDEX "EMP_NAME_IX" ON "EMPLOYEES" ("LAST_NAME", "FIRST_NAME");
+
+3. Filters
+-----------
+
+COUNTRY_NAME LIKE 'A%' OR COUNTRY_NAME LIKE 'C%'
+
+4. Other Users
+---------------
+
+SELECT * FROM ALL_USERS; 
+
+5. Synonyms and Filters
+------------------------
+
+CREATE SYNONYM CUSTOMERS FOR OE.CUSTOMERS;
+
+SELECT * from OE.CUSTOMERS;
+
+6. Creating Views
+-----------------
+
+SELECT * 
+FROM   EMPLOYEES
+WHERE DEPARTMENT_ID > 50
+
+7. Normalizing Data
+-------------------
+
+CREATE TABLE BIGEMP 
+AS 
+SELECT B.EMPLOYEE_ID,
+  B.FIRST_NAME,
+  B.LAST_NAME,
+  B.EMAIL,
+  B.HIRE_DATE,
+  B.JOB_ID,
+  B.SALARY,
+  A.DEPARTMENT_NAME
+FROM EMPLOYEES B,
+     DEPARTMENTS A
+WHERE A.DEPARTMENT_ID = B.DEPARTMENT_ID;
+ 

@@ -1,0 +1,5 @@
+1. Using Basic Commands
+------------------------
+
+DESC DEPARTMENTS
+SELECT * FROM DEPARTMENTS;

@@ -1,0 +1,653 @@
+Please note, this file includes a number of pieces of code.  The smaller chunks are in the chapter, the xsd files are not. We have numbered each piece of code, and named the xsd files.
+
+
+1. Building the XML File for a Display Editor
+---------------------------------------------
+
+<displays>
+	<!-- OverView -->
+	<display type="editor" style="null" enable="true" class="Oracle#SUBPARTITION" objectType="TABLE">
+		<name><![CDATA[Subpartitions]]></name>
+		<query>
+			<sql>
+				<![CDATA[SELECT * FROM USER_TAB_SUBPARTITIONS WHERE TABLE_NAME = :TABLE_NAME]]>
+			</sql>
+		</query>
+      	    	<CustomValues>
+		   <TYPE>horizontal</TYPE>
+	    	</CustomValues>
+	</display>
+</displays>
+
+
+2a. Display XSD (display.xsd)
+-----------------------------
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:include schemaLocation="../../../../../../../../utils/src/oracle/dbtools/raptor/query/query.xsd"/>
+  <xs:element name="displays">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="display"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="display">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element ref="display"/>
+          <xs:element ref="CustomValues"/>
+          <xs:element ref="description"/>
+          <xs:element ref="drillclass"/>
+          <xs:element ref="iconName"/>
+          <xs:element ref="name"/>
+          <xs:element ref="query"/>
+          <xs:element ref="tooltip"/>
+        </xs:choice>
+        <xs:element minOccurs="0" ref="queries"/>
+      </xs:sequence>
+      <xs:attribute name="class"/>
+      <xs:attribute name="editorClass"/>
+      <xs:attribute name="enable" type="xs:boolean"/>
+      <xs:attribute name="node" type="xs:NCName"/>
+      <xs:attribute name="objectType" type="xs:NCName"/>
+      <xs:attribute name="style"/>
+      <xs:attribute name="type"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="CustomValues">
+    <xs:complexType>
+      <xs:choice>
+        <xs:element ref="TYPE"/>
+        <xs:element ref="requiredProp"/>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="TYPE" type="xs:NCName"/>
+  <xs:element name="requiredProp" type="xs:NMTOKEN"/>
+  <xs:element name="description">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="drillclass" type="xs:NCName"/>
+  <xs:element name="iconName" type="xs:anyURI"/>
+  <xs:element name="name" type="xs:string"/>
+  <xs:element name="tooltip">
+    <xs:complexType/>
+  </xs:element>
+</xs:schema>
+
+2b. Query XSD (query.xsd)
+-------------------------
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+<xs:element name="queries">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element  minOccurs="0" maxOccurs="unbounded" ref="query"/>
+        <xs:element minOccurs="0" ref="binds"/>
+        <xs:element minOccurs="0" ref="columns"/>
+        <xs:element minOccurs="0" ref="optionalBinds"/>
+      </xs:sequence>
+	    <xs:attribute name="id" type="xs:string"/>
+		<xs:attribute name="sharedId" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="query">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="sql"/>
+        <xs:element minOccurs="0" ref="binds"/>
+        <xs:element minOccurs="0" ref="columns"/>
+        <xs:element minOccurs="0" ref="optionalBinds"/>
+      </xs:sequence>
+      <xs:attribute name="minversion" type="xs:float"/>
+      <xs:attribute name="maxversion" type="xs:float"/>
+	  <xs:attribute name="id" type="xs:string"/>
+	  <xs:attribute name="sharedId" type="xs:string"/>
+	  <xs:attribute name="requiredAccessObjects" type="xs:string"/>		
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sql">
+    <xs:complexType mixed="true">
+      <xs:attribute name="constrained" type="xs:boolean"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="binds">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="columns">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="column"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="column">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="type"/>
+        <xs:element ref="colName"/>
+      </xs:sequence>
+      <xs:attribute name="filterable" type="xs:boolean"/>
+      <xs:attribute name="id" use="required" type="xs:string"/>
+      <xs:attribute name="sortable" type="xs:boolean"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="colName" type="xs:string"/>
+  <xs:element name="optionalBinds">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="bind"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="bind">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="type"/>
+        <xs:element ref="prompt"/>
+        <xs:element ref="tooltip"/>
+      </xs:sequence>
+      <xs:attribute name="filterable" use="required" type="xs:boolean"/>
+      <xs:attribute name="id" use="required" type="xs:string"/>
+      <xs:attribute name="sortable" use="required" type="xs:boolean"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="type" type="xs:string"/>
+  <xs:element name="prompt" type="xs:string"/>
+  <xs:element name="tooltip" type="xs:string"/>
+</xs:schema>
+
+
+3. Building the XML file for a display editor
+---------------------------------------------  
+
+CREATE TABLE "CUST_PART" 
+   (	"CUSTOMER_ID" NUMBER(6,0), 
+	"CUST_FIRST_NAME" VARCHAR2(20 BYTE), 
+	"CUST_LAST_NAME" VARCHAR2(20 BYTE), 
+	"NLS_TERRITORY" VARCHAR2(30 BYTE), 
+	"CREDIT_LIMIT" NUMBER(9,2)
+   ) 
+  PARTITION BY RANGE ("CREDIT_LIMIT") 
+  SUBPARTITION BY LIST ("NLS_TERRITORY") 
+  SUBPARTITION TEMPLATE ( 
+    SUBPARTITION "EAST" VALUES ( 'CHINA', 'JAPAN', 'INDIA', 'THAILAND' ), 
+    SUBPARTITION "WEST" VALUES ( 'AMERICA', 'GERMANY', 'ITALY', 'SWITZERLAND' ), 
+    SUBPARTITION "OTHER" VALUES ( DEFAULT ) ) 
+ (PARTITION "P1"  VALUES LESS THAN (1000) , 
+ PARTITION "P2"  VALUES LESS THAN (2500) , 
+ PARTITION "P3"  VALUES LESS THAN (MAXVALUE) ) ;
+
+
+
+4. Adding a Context Menu to the Connections Menu
+------------------------------------------------
+
+<?xml version="1.0" encoding="UTF-8"?>
+<items xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:noNamespaceSchemaLocation="dialogs.xsd">
+  <item type="CONNECTION" reload="true">      
+    <title>
+	Compile Schema
+    </title>     
+    <prompt type="confirm">
+      <label>
+	Confirm to compile all in the schema.
+      </label>
+    </prompt>
+    <sql>
+      <![CDATA[BEGIN DBMS_UTILITY.COMPILE_SCHEMA (:OBJECT_OWNER); END;]]>
+    </sql>
+    <help>
+	Compiles all the objects in the schema. 
+    </help>
+  </item>
+</items>
+
+
+
+5. Dialogs XSD (dialogs.xsd)
+----------------------------
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="items">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="item"/>
+        <xs:element ref="folder"/>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="folder">
+  <xs:annotation>
+     <xs:documentation>Placing the items in a folder will make the menu cascade.</xs:documentation>
+	</xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="name">
+			  <xs:annotation>
+				 <xs:documentation>Name of the folder which will be used in the menu.</xs:documentation>
+			  </xs:annotation>
+			</xs:element>
+        <xs:element maxOccurs="unbounded" ref="item">
+			  <xs:annotation>
+				 <xs:documentation>Them items or context menus</xs:documentation>
+			  </xs:annotation>
+			</xs:element>
+      </xs:sequence>
+      <xs:attribute name="type" use="required"/>
+      <xs:attribute name="weight" use="optional" type="xs:float">
+			  <xs:annotation>
+				 <xs:documentation>The weight of the folder will be used for sorting.</xs:documentation>
+			  </xs:annotation>
+			</xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="name" type="xs:string"/>
+  <xs:element name="item">
+    <xs:complexType mixed="true">
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="label"/>
+        <xs:element ref="prompt"/>
+        <xs:element ref="sql"/>
+        <xs:element ref="title"/>
+        <xs:element ref="iconName"/>
+        <xs:element ref="confirmation"/>
+        <xs:element ref="help"/>
+      </xs:choice>
+      <xs:attribute name="classArgs"/>
+      <xs:attribute name="required" type="xs:boolean"/>
+      <xs:attribute name="connectionRequired" type="xs:boolean"/>
+      <xs:attribute name="className"/>
+      <xs:attribute name="connType"/>
+      <xs:attribute name="validator"/>
+      <xs:attribute name="minversion" type="xs:decimal"/>
+      <xs:attribute name="reload" type="xs:boolean"/>
+      <xs:attribute name="reloadparent" type="xs:boolean"/>
+      <xs:attribute name="removeFromParent" type="xs:boolean"/>
+      <xs:attribute name="type" use="required"/>
+      <xs:attribute name="weight" use="optional" type="xs:float"/>
+      <xs:attribute name="selectionMode"  use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="SINGLE"/>
+            <xs:enumeration value="MULTI"/>
+            <xs:enumeration value="BOTH"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="selectchoice">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="1">
+        <xs:element name="SINGLE"/>
+        <xs:element name="MULTI"/>
+        <xs:element name="BOTH"/>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="confirmation">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="title"/>
+        <xs:element ref="prompt"/>
+        <xs:element minOccurs="0" ref="sql"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="help" type="xs:string"/>
+  <xs:element name="title" type="xs:string"/>
+  <xs:element name="iconName" type="xs:string"/>
+  <xs:element name="prompt">
+    <xs:complexType mixed="true">
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="label"/>
+        <xs:element ref="default"/>
+        <xs:element ref="value"/>
+      </xs:choice>
+      <xs:attribute name="reload" type="xs:string"/>
+      <xs:attribute name="required" type="xs:boolean"/>
+      <xs:attribute name="validator" type="xs:string"/>
+      <xs:attribute name="datatype" type="xs:string"/>
+      <xs:attribute name="type_attrib" type="xs:string"/>
+      <xs:attribute name="type" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="default" type="xs:string"/>
+  <xs:element name="value" type="xs:string"/>
+  <xs:element name="sql" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>SQL for menu</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="label" type="xs:string"/>
+  
+</xs:schema>
+
+6a. Passing Parameters
+---------------------
+
+<prompt>
+	 <label>Compile All </label> 
+	 <value><![CDATA[STATIC:TRUE:FALSE]]></value>
+</prompt>
+
+
+6b. 
+
+<sql>
+   <![CDATA[BEGIN   
+      DBMS_UTILITY.COMPILE_SCHEMA('#OBJECT_OWNER#', #0#);    
+      END;]]>
+</sql>
+
+
+7. Adding a New Tree to the Navigator
+-------------------------------------
+
+<?xml version="1.0" encoding="windows-1252" ?>
+<navigator RESOURCE_FILE="oracle.dbtools.raptor.navigator.OracleNavigatorResource"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="navigator.xsd">
+	<objectType connType="Oracle" id="MyApplication"
+		weight="50.0" includesSyns="true">
+		<folder> <!-- level1 -->
+			<icon RSKEY="TABLE_FOLDER_ICON" />
+			<label RSKEY="My Application Node" />
+			<queries> <!-- level2 -->
+            <query minversion="8">
+				<sql constrained="true"><![CDATA[]]></sql>
+				</query> 
+			</queries>
+		</folder>
+	</objectType>
+</navigator>
+
+7b. 
+----------
+
+<queries> <!-- level2 -->
+   <query minversion="8">
+	  <sql constrained="true">
+    <![CDATA[SELECT TABLE_NAME NAME FROM TABS]]></sql>
+	</query> 
+	<columns>
+		<column filterable="true" sortable="true" id="NAME">
+			<colName><![CDATA[name]]></colName>
+		</column>
+   </columns>
+</queries> 
+
+7c.
+-----------
+
+<node> <!-- level2 details -->
+  <icon RSKEY="OracleIcons.TABLE" />
+</node>
+
+7d.
+<node> <!-- level2 details -->
+  <icon RSKEY="OracleIcons.TABLE" />
+  <childType id="Level3"> <!-- Level3 -->
+	 <icon RSKEY="OracleIcons.COLUMN" />
+	 <queries>
+	   <query>
+		  <sql> SELECT COLUMN_NAME FROM USER_TAB_COLUMNS
+                        WHERE TABLE_NAME = :PARENT_NAME
+	 	  </sql>
+		</query>
+	   <columns>
+		  <column filterable="true" sortable="true" id="NAME">
+			 <colName><![CDATA[column_name]]></colName>
+		  </column>
+	   </columns>
+     </queries>
+  </childType>
+</node>
+
+
+8. Navigator XSD (navigator.xsd)
+---------------------------------
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	    <xs:include schemaLocation="/oracle/dbtools/raptor/query/query.xsd"/>
+  <xs:element name="navigator">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="connection" minOccurs="0" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="objectType"/>
+      </xs:sequence>
+      <xs:attribute name="RESOURCE_FILE" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="connection">
+    <xs:complexType>
+      <xs:sequence minOccurs="0">
+        <xs:element ref="icon"/>
+      </xs:sequence>
+      <xs:attribute name="id" use="required" type="xs:string"/>
+	  <xs:attribute name="connectionPanelClass" use="optional" type="xs:string"/>
+	  <xs:attribute name="connectionTabName" use="optional" type="xs:string"/>
+      <xs:attribute name="supportsOtherSchemas" use="optional" type="xs:boolean"/>
+      <xs:attribute name="supportsRowId" use="optional" type="xs:boolean"/>
+      <xs:attribute name="showAllSchemas" type="xs:boolean"/>
+      <xs:attribute name="supportsCatalog" type="xs:boolean" default="false"/>
+      <xs:attribute name="implClass" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="objectType">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="folder" minOccurs="0"/>
+        <xs:element ref="node"/>
+      </xs:sequence>
+      <xs:attribute name="connType" use="required" type="xs:string"/>
+      <xs:attribute name="id" use="required" type="xs:string"/>
+      <xs:attribute name="weight" use="required" type="xs:decimal"/>
+      <xs:attribute name="implementationClass" type="xs:string"/>
+      <xs:attribute name="includesSyns" type="xs:boolean"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="folder">
+    <xs:complexType>
+      <xs:sequence minOccurs="0">
+        <xs:element ref="icon"/>
+        <xs:element ref="label"/>
+        <xs:element ref="queries"/>
+      </xs:sequence>
+      <xs:attribute name="currentSchemaOnly" type="xs:boolean"/>
+      <xs:attribute name="relativeWeight" type="xs:decimal"/>
+      <xs:attribute name="schemaOverride" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="label">
+    <xs:complexType>
+      <xs:attribute name="RSKEY" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="node">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="icon"/>
+        <xs:element minOccurs="0" ref="childType" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="nodeClass" type="xs:string"/>
+      <xs:attributeGroup ref="filterableObject"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="childType">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="icon"/>
+        <xs:element ref="queries" minOccurs="0"/>
+      </xs:sequence>
+      <xs:attribute name="id" use="required" type="xs:string"/>
+      <xs:attribute name="nodeType" type="xs:string"/>
+      <xs:attribute name="provImplClass" type="xs:String"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="icon">
+    <xs:complexType>
+      <xs:attribute name="RSKEY" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="filterableObject">
+    <xs:attribute name="instanceClass" type="xs:string" use="optional"/>
+    <xs:attribute name="itemClass" type="xs:string"/>
+  </xs:attributeGroup>
+</xs:schema>
+
+9. Navigators
+-------------
+
+<?xml version="1.0" encoding="windows-1252" ?>
+<navigator RESOURCE_FILE="oracle.dbtools.raptor.navigator.OracleNavigatorResource"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="navigator.xsd">
+  <objectType connType="Oracle" id="DIMENSION" weight="100.0" includesSyns="true">
+    <folder>
+      <icon RSKEY="TABLE_FOLDER_ICON"/>
+      <label RSKEY="Dimensions"/>
+      <queries>
+        <query minversion="8">
+          <sql constrained="true">
+            <![CDATA[SELECT DIMENSION_NAME FROM USER_DIMENSIONS]]>
+          </sql>
+        </query>
+          <columns>
+            <column filterable="true" sortable="true" id="NAME">
+              <colName>
+                <![CDATA[dimension_name]]>
+              </colName>
+            </column>
+           </columns>  
+	</queries>
+    </folder>
+    <node>
+	<icon RSKEY="OracleIcons.TABLE" />
+		<childType id="Level3"> 
+			<icon RSKEY="OracleIcons.COLUMN" />
+			<queries>
+				<query>
+				    <sql> SELECT LEVEL_NAME  FROM  USER_DIM_LEVELS
+                                          WHERE DIMENSION_NAME = :PARENT_NAME
+				    </sql>
+				</query>
+				<columns>
+					<column filterable="true" sortable="true" id="NAME">
+						<colName><![CDATA[level_name]]></colName>
+					</column>
+				</columns>
+			</queries>
+		</childType>
+	</node>
+  </objectType>
+</navigator>
+
+10. Display Editors
+------------------
+
+<?xml version="1.0" encoding="UTF-8"?>
+<displays>
+<!-- OverView -->
+    <display type="editor" style="null" enable="true" class="Oracle#DIMENSION" objectType="DIMENSION">
+	<name><![CDATA[Attributes]]></name>
+	<query>
+	   <sql>
+		<![CDATA[SELECT ATTRIBUTE_NAME, COLUMN_NAME, INFERRED, LEVEL_NAME  FROM USER_DIM_ATTRIBUTES WHERE UPPER(DIMENSION_NAME) = UPPER(:NAME)]]>
+	   </sql>
+	</query>
+      	<CustomValues>
+	   <TYPE>horizontal</TYPE>
+        </CustomValues>
+    </display>
+    <display type="editor" style="null" enable="true" class="Oracle#DIMENSION" objectType="DIMENSION">
+	<name><![CDATA[Details]]></name>
+	<query>
+		<sql>
+			<![CDATA[SELECT * FROM USER_DIMENSIONS WHERE UPPER(DIMENSION_NAME) =UPPER(:NAME)]]>
+		</sql>
+	</query>
+      	<CustomValues>
+	   <TYPE>vertical</TYPE>
+	</CustomValues>
+    </display>
+    <display type="editor" style="null" enable="true" class="Oracle#DIMENSION" objectType="DIMENSION">
+	 <name><![CDATA[Levels]]></name>
+         <query>
+	    <sql>
+	       <![CDATA[SELECT LEVEL_NAME, NUM_COLUMNS, DETAILOBJ_OWNER, DETAILOBJ_NAME FROM  USER_DIM_LEVELS WHERE UPPER(DIMENSION_NAME) =UPPER(:NAME)]]>
+	    </sql>
+	</query>
+      	<CustomValues>
+	   <TYPE>horizontal</TYPE>
+	</CustomValues>
+    </display>
+    <display type="editor" style="null" enable="true" class="Oracle#DIMENSION" objectType="DIMENSION">
+	<name><![CDATA[Hierarchies]]></name>
+	<query>
+		<sql>
+	          <![CDATA[SELECT HIERARCHY_NAME FROM  USER_DIM_HIERARCHIES
+				 WHERE UPPER(DIMENSION_NAME) =UPPER(:NAME)]]>
+		</sql>
+		</query>
+      	<CustomValues>
+	   <TYPE>horizontal</TYPE>
+	</CustomValues>
+    </display>
+    <display type="editor" style="null" enable="true" class="Oracle#DIMENSION" objectType="DIMENSION">
+	<name><![CDATA[Hierarchical Relation]]></name>
+	<query>
+		<sql>
+	          <![CDATA[SELECT HIERARCHY_NAME, CHILD_LEVEL_NAME, PARENT_LEVEL_NAME, JOIN_KEY_ID, POSITION  FROM USER_DIM_CHILD_OF
+		            WHERE UPPER(DIMENSION_NAME) =UPPER(:NAME)]]>
+		</sql>
+	</query>
+      	<CustomValues>
+	   <TYPE>horizontal</TYPE>
+        </CustomValues>
+    </display>
+</displays>
+
+
+11.  Adding Context Menus
+-------------------------
+
+<?xml version="1.0" encoding="UTF-8"?>
+<items xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"xsi:noNamespaceSchemaLocation="dialogs.xsd">
+	<item type="DIMENSION" reload="true" >
+		<title>Compile</title>
+		<prompt type="confirm">
+			<label><![CDATA[Are you sure you want to compile this Dimension?]]></label>
+		</prompt>
+		<sql>
+		<![CDATA[ALTER DIMENSION #DIMENSIONNAME# COMPILE]]>
+		</sql>
+		<help>Compiles the selected dimension.</help>
+		<confirmation>
+			<title>Confirmation</title>
+			<prompt>Dimension #DIMENSIONNAME# has been compiled.</prompt>
+		</confirmation>
+	</item>	
+	<item type="DIMENSION" reload="true" >
+		<title>Drop</title>
+		<prompt type="confirm">
+			<label><![CDATA[Are you sure you want to drop this Dimension?]]></label>
+		</prompt>
+		<sql>
+		<![CDATA[DROP DIMENSION #DIMENSIONNAME#]]>
+		</sql>
+		<help>Drops the selected dimension.</help>
+		<confirmation>
+			<title>Confirmation</title>
+			<prompt>Dimension #DIMENSIONNAME# has been dropped.</prompt>
+		</confirmation>
+	</item>	
+</items>

@@ -1,0 +1,47 @@
+
+
+1. OS Authentication
+---------------------
+
+SELECT UPPER(SYS_CONTEXT('USERENV','OS_USER')) FROM DUAL;
+
+CREATE USER "OPS$SMHARPER-LAP\SMHARPER" IDENTIFIED EXTERNALLY;
+GRANT CREATE SESSION TO "OPS$SMHARPER-LAP\SMHARPER";
+
+
+2. Proxy Connection
+--------------------
+
+GRANT CONNECT, RESOURCE TO HR_PROXY IDENTIFIED BY ORACLE;
+ALTER USER HR GRANT CONNECT THROUGH HR_PROXY;
+
+3. Kerberos Files
+------------------
+
+Sample SQLNet.ora
+
+SQLNET.KERBEROS5_KEYTAB = C:\Apps\kerberos\v5srvtab
+
+SQLNET.KERBEROS5_REALMS = C:\Apps\kerberos\krb.realms
+
+SQLNET.KERBEROS5_CC_NAME = C:\Apps\kerberos\krbcache
+
+SQLNET.AUTHENTICATION_SERVICES= (KERBEROS5)
+
+NAMES.DIRECTORY_PATH= (TNSNAMES, EZCONNECT)
+
+SQLNET.KERBEROS5_CONF = C:\Apps\kerberos\krb5.conf
+
+SQLNET.AUTHENTICATION_KERBEROS5_SERVICE = oratst
+
+Sample krb5.conf
+[libdefaults]
+	default_realm = US.ORACLE.COM
+[realms]
+US.ORACLE.COM = {
+      kdc = mymachine.us.oracle.com
+                 }
+[domain_realm]
+     us.oracle.com = US.ORACLE.COM
+
+

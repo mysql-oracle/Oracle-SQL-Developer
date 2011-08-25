@@ -1,0 +1,90 @@
+
+1. Creating general reports
+---------------------------
+
+SELECT * FROM EMPLOYEES
+
+
+2. Build General Tabular Reports
+--------------------------------
+
+SELECT B.DEPARTMENT_ID,
+	B.DEPARTMENT_NAME,
+	A.FIRST_NAME,
+	A.LAST_NAME,
+	A.PHONE_NUMBER,
+	A.HIRE_DATE,
+	A.SALARY,
+	C.JOB_TITLE 
+FROM HR.DEPARTMENTS B,
+	HR.EMPLOYEES A,
+	HR.JOBS C
+WHERE A.EMPLOYEE_ID = B.MANAGER_ID
+AND B.DEPARTMENT_ID = A.DEPARTMENT_ID
+AND C.JOB_ID        = A.JOB_ID;
+
+
+3. Drill Down Reports 
+---------------------
+
+SELECT DEPARTMENT_ID,
+       DEPARTMENT_NAME,
+       LOCATION_ID
+FROM DEPARTMENTS
+
+
+SELECT EMPLOYEE_ID,FIRST_NAME,LAST_NAME,EMAIL,DEPARTMENT_ID
+FROM   EMPLOYEES
+WHERE  department_id = :DEPARTMENT_ID
+
+
+4. Adding charts
+----------------
+
+SELECT DEPARTMENT_ID,
+       LAST_NAME,
+       SALARY
+FROM EMPLOYEES
+
+
+5. Creating pie chart reports
+-----------------------------
+
+SELECT DEPARTMENT_ID, LAST_NAME,SALARY
+FROM EMPLOYEES
+WHERE DEPARTMENT_ID = :DEPT_ID
+
+6. Using the Script Style Reports 
+---------------------------------
+
+SELECT TEXT FROM USER_SOURCE WHERE NAME = 'ADD_DEPT'
+
+
+7. Using PL/SQL in a report
+---------------------------
+
+DECLARE 
+  CURSOR JOBS IS 
+  SELECT LAST_NAME, JOB_ID 
+    FROM EMPLOYEES 
+    WHERE MANAGER_ID > 120
+    ORDER BY JOB_ID;
+  
+BEGIN
+DBMS_OUTPUT.PUT_LINE ('<H1> The Main PL/SQL Report</H1>');
+DBMS_OUTPUT.PUT_LINE ('<p> Designed to Illustrate a PL/SQL Report</p>');
+DBMS_OUTPUT.PUT_LINE ('<H3> Ceated by Sue Harper</H3>');
+DBMS_OUTPUT.PUT_LINE ('<H5> Created in November 2008</H5>');
+DBMS_OUTPUT.PUT_LINE ('=============================');
+
+FOR ITEM IN JOBS
+  LOOP
+    DBMS_OUTPUT.PUT_LINE ('<p> <b>Name</b> = ' 
+    || ITEM.LAST_NAME ||  '<b> Job</b> = ' || ITEM.JOB_ID || ' </p>');
+  END LOOP;
+END;
+
+
+
+
+
